@@ -1,5 +1,12 @@
 # VoiceScript AI
 
+![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
+
 A production-grade, full-stack AI transcription system that converts speech to polished, domain-specific text in real time. Built with OpenAI Whisper for accurate speech recognition and a streaming LLM pipeline for intelligent post-processing.
 
 ## Features
