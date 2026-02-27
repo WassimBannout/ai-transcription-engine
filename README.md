@@ -1,6 +1,5 @@
 # VoiceScript AI
 
-[![CI](https://github.com/WassimBannout/ai-transcription-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/WassimBannout/ai-transcription-engine/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)
@@ -62,7 +61,7 @@ Browser (React + TypeScript)
 ### 1. Open in Dev Container
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/WassimBannout/ai-transcription-engine.git
 cd ai-transcription-engine
 code .
 # VS Code: "Reopen in Container"
@@ -164,10 +163,6 @@ ai-transcription-engine/
 │           └── ...
 └── .devcontainer/            # Docker + VS Code devcontainer config
 ```
-
-## Contributing
-
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, lint commands, and how to submit a pull request.
 
 ## License
 
