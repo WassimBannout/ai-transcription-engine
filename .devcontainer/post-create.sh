@@ -28,7 +28,7 @@ fi
 
 echo "🐍 Installing Python dependencies with uv..."
 cd backend
-uv sync
+uv sync --extra dev
 cd ..
 echo "✅ Python dependencies installed"
 
@@ -37,10 +37,6 @@ cd frontend
 npm install
 cd ..
 echo "✅ Frontend dependencies installed"
-
-echo "🔧 Installing TypeScript globally..."
-sudo npm install -g typescript@5.9.3
-echo "✅ TypeScript installed globally"
 
 # Download Ollama model automatically
 echo "🤖 Downloading Ollama model (gemma3:4b)..."

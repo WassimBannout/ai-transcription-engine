@@ -102,6 +102,9 @@ LLM_MODEL=gemma3:4b
 
 # Whisper model size (tiny.en / base.en / small.en / medium.en)
 WHISPER_MODEL=small.en
+
+# Optional: comma-separated frontend origins for CORS
+# CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 ```
 
 Larger Whisper models improve accuracy at the cost of speed. `small.en` is the recommended default for a good accuracy/latency trade-off.
@@ -162,6 +165,20 @@ ai-transcription-engine/
 │           ├── SettingsPanel # Domain selector + LLM toggle
 │           └── ...
 └── .devcontainer/            # Docker + VS Code devcontainer config
+```
+
+## Quality Checks
+
+```bash
+# Frontend
+cd frontend
+npm run type-check
+npm run lint
+npm run build
+
+# Backend
+cd ../backend
+uv run pytest
 ```
 
 ## License

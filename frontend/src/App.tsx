@@ -14,6 +14,7 @@ interface TranscriptionResponse {
   success: boolean;
   text?: string;
   error?: string;
+  detail?: string;
 }
 
 interface SystemPromptResponse {
@@ -44,11 +45,19 @@ function App() {
     const loadSystemPrompt = async () => {
       try {
         const response = await fetch('/api/system-prompt');
+        if (!response.ok) {
+          const errorBody = (await response.json().catch(() => null)) as
+            | { detail?: string }
+            | null;
+          const detail = errorBody?.detail ?? response.statusText;
+          throw new Error(detail);
+        }
         const data = (await response.json()) as SystemPromptResponse;
         setSystemPrompt(data.default_prompt);
       } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
         console.error('Failed to load system prompt:', err);
-        setError('Failed to load system prompt');
+        setError('Failed to load system prompt: ' + message);
       } finally {
         setIsLoadingPrompt(false);
       }
@@ -62,6 +71,7 @@ function App() {
     async (text: string) => {
       setIsCleaningWithLLM(true);
       setCleanedText('');
+      setError(null);
 
       try {
         const response = await fetch('/api/clean/stream', {
@@ -74,25 +84,37 @@ function App() {
         });
 
         if (!response.ok || !response.body) {
-          throw new Error(`Streaming failed: ${response.statusText}`);
+          const errorBody = (await response.json().catch(() => null)) as
+            | { detail?: string }
+            | null;
+          const detail = errorBody?.detail ?? response.statusText;
+          throw new Error(`Streaming failed: ${detail}`);
         }
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
+        let doneReceived = false;
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
           buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() ?? '';
+          const events = buffer.split('\n\n');
+          buffer = events.pop() ?? '';
 
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            const data = line.slice(6);
-            if (data === '[DONE]') break;
+          for (const event of events) {
+            const line = event
+              .split('\n')
+              .find((part) => part.startsWith('data: '));
+            if (!line) continue;
+
+            const data = line.slice(6).trim();
+            if (data === '[DONE]') {
+              doneReceived = true;
+              break;
+            }
 
             try {
               const parsed = JSON.parse(data) as {
@@ -102,9 +124,18 @@ function App() {
               if (parsed.token) {
                 setCleanedText((prev) => (prev ?? '') + parsed.token);
               }
+              if (parsed.error) {
+                setError(parsed.error);
+                doneReceived = true;
+                break;
+              }
             } catch {
               // ignore individual chunk parse errors
             }
+          }
+
+          if (doneReceived) {
+            break;
           }
         }
       } catch (err) {
@@ -118,9 +149,9 @@ function App() {
   );
 
   const uploadAudio = useCallback(
-    async (audioBlob: Blob) => {
+    async (audioBlob: Blob, filename = 'recording.webm') => {
       const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.webm');
+      formData.append('audio', audioBlob, filename);
 
       try {
         const transcribeResponse = await fetch('/api/transcribe', {
@@ -129,9 +160,11 @@ function App() {
         });
 
         if (!transcribeResponse.ok) {
-          throw new Error(
-            `Transcription failed: ${transcribeResponse.statusText}`,
-          );
+          const errorBody = (await transcribeResponse.json().catch(() => null)) as
+            | { detail?: string }
+            | null;
+          const detail = errorBody?.detail ?? transcribeResponse.statusText;
+          throw new Error(`Transcription failed: ${detail}`);
         }
 
         const transcribeData =
@@ -171,7 +204,7 @@ function App() {
 
       mediaRecorderRef.current.onstop = async () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        await uploadAudio(blob);
+        await uploadAudio(blob, 'recording.webm');
 
         stream.getTracks().forEach((track) => track.stop());
       };
@@ -211,7 +244,7 @@ function App() {
     setIsCleaningWithLLM(false);
 
     const blob = new Blob([file], { type: file.type });
-    void uploadAudio(blob);
+    void uploadAudio(blob, file.name || 'upload.webm');
   };
 
   const handleDragEnter = () => {

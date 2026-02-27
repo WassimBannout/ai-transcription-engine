@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
-"""
-Uses OpenAI API format, compatible with Ollama, OpenAI, LM Studio, and other providers.
-Configuration is loaded from .env file.
-"""
+"""Transcription and LLM cleaning service primitives."""
 
+from collections.abc import AsyncGenerator
 from pathlib import Path
-from typing import AsyncGenerator
 
 from faster_whisper import WhisperModel
 from openai import AsyncOpenAI, OpenAI
@@ -15,8 +12,12 @@ PROMPT_FILE = Path(__file__).parent / "system_prompt.txt"
 SYSTEM_PROMPT = PROMPT_FILE.read_text().strip()
 
 
+class LLMServiceError(RuntimeError):
+    """Raised when LLM generation fails."""
+
+
 class TranscriptionService:
-    """Uses OpenAI-compatible API, works with any provider (Ollama, OpenAI, LM Studio, etc.)."""
+    """OpenAI-compatible transcription and cleaning service."""
 
     def __init__(
         self, whisper_model: str, llm_base_url: str, llm_api_key: str, llm_model: str
@@ -42,21 +43,21 @@ class TranscriptionService:
             print(f"⚠️  Warning: Could not connect to LLM: {e}")
             print(f"   Make sure your LLM server is running at {llm_base_url}")
 
-    def transcribe(self, audio_file):
+    def transcribe(self, audio_file: str) -> str:
         print("🔄 Transcribing...")
 
         segments, _info = self.whisper.transcribe(
             audio_file, beam_size=5, language="en", condition_on_previous_text=False
         )
 
-        text = " ".join([segment.text for segment in segments]).strip()
+        text = " ".join(segment.text for segment in segments).strip()
         print(f"📝 Raw: {text}")
         return text
 
-    def get_default_system_prompt(self):
+    def get_default_system_prompt(self) -> str:
         return SYSTEM_PROMPT
 
-    def clean_with_llm(self, text, system_prompt=None):
+    def clean_with_llm(self, text: str, system_prompt: str | None = None) -> str:
         if not text:
             return ""
 
@@ -75,13 +76,14 @@ class TranscriptionService:
                 max_tokens=2000,
             )
 
-            cleaned = response.choices[0].message.content.strip()
+            message_content = response.choices[0].message.content
+            cleaned = message_content.strip() if message_content else ""
             print(f"✨ Cleaned: {cleaned}")
             return cleaned
 
         except Exception as e:
             print(f"⚠️  LLM error: {e}")
-            return text  # Fallback to raw text
+            raise LLMServiceError(f"LLM cleaning failed: {e}") from e
 
     async def stream_clean(
         self, text: str, system_prompt: str | None = None
@@ -116,7 +118,7 @@ class TranscriptionService:
 
         except Exception as e:
             print(f"⚠️  Streaming LLM error: {e}")
-            yield text  # Fallback to raw text
+            raise LLMServiceError(f"Streaming LLM failed: {e}") from e
 
     def transcribe_file(self, audio_file_path: str, use_llm: bool = True) -> dict:
         raw_text = self.transcribe(audio_file_path)
