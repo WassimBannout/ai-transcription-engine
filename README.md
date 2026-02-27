@@ -1,5 +1,6 @@
 # VoiceScript AI
 
+[![CI](https://github.com/YOUR_USERNAME/ai-transcription-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/WassimBannout/ai-transcription-engine/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)
@@ -17,6 +18,13 @@ A production-grade, full-stack AI transcription system that converts speech to p
 - **Flexible LLM backend** — works with Ollama (local), OpenAI, LM Studio, or any OpenAI-compatible API; swap providers via `.env`
 - **Export** — download transcripts as Markdown (with metadata), plain text, or JSON for downstream use
 - **Offline capable** — Whisper and a local LLM run entirely on-device; no data leaves your machine
+
+## Demo
+
+<!-- Add a screenshot or screen recording here after first run -->
+<!-- Example: ![Demo](docs/demo.gif) -->
+
+> **Tip:** Record a short GIF of the app in action and drop it into `docs/` — it's the single biggest thing that makes a GitHub page stand out.
 
 ## Architecture
 
@@ -156,6 +164,10 @@ ai-transcription-engine/
 │           └── ...
 └── .devcontainer/            # Docker + VS Code devcontainer config
 ```
+
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, lint commands, and how to submit a pull request.
 
 ## License
 
