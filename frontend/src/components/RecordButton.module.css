@@ -3,7 +3,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-2);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
 }
 
 .button {
@@ -11,55 +11,52 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-3);
-  padding: var(--space-5) var(--space-8);
-  font-size: var(--font-size-xl);
+  padding: 14px 34px;
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
-  color: white;
-  background: var(--color-primary);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
+  color: #fff;
+  background: linear-gradient(120deg, var(--color-accent), #ff9f40);
+  border-radius: var(--radius-full);
+  box-shadow:
+    0 14px 28px rgba(255, 122, 26, 0.26),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.2);
   transition:
     transform var(--transition-base),
     box-shadow var(--transition-base),
-    background var(--transition-base);
+    filter var(--transition-base);
   min-height: 56px;
-  min-width: 220px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  min-width: 230px;
 }
 
 .button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-xl);
-  background: var(--color-primary-hover);
+  box-shadow:
+    0 18px 34px rgba(255, 122, 26, 0.35),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  filter: saturate(1.1);
 }
 
 .button:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: var(--shadow-md);
 }
 
 .button:disabled {
   cursor: not-allowed;
-  opacity: 0.7;
+  opacity: 0.72;
 }
 
 .button.recording {
-  background: var(--color-error);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.button.recording:hover:not(:disabled) {
-  background: #dc2626;
+  background: linear-gradient(120deg, #ef4444, #f97316);
+  animation: pulse 1.8s ease-in-out infinite;
 }
 
 .button.processing {
-  background: var(--color-text-tertiary);
+  background: linear-gradient(120deg, #587188, #7b93a8);
 }
 
 .icon {
-  width: 24px;
-  height: 24px;
-  animation: none;
+  width: 22px;
+  height: 22px;
 }
 
 .button.processing .icon {
@@ -68,18 +65,21 @@
 
 .hint {
   font-size: var(--font-size-sm);
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: var(--font-weight-medium);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  color: var(--color-text-secondary);
+  letter-spacing: 0.03em;
 }
 
 @keyframes pulse {
   0%,
   100% {
-    opacity: 1;
+    box-shadow:
+      0 14px 28px rgba(239, 68, 68, 0.25),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
   }
   50% {
-    opacity: 0.85;
+    box-shadow:
+      0 20px 38px rgba(239, 68, 68, 0.4),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -92,16 +92,11 @@
   }
 }
 
-/* Mobile responsive */
 @media (max-width: 640px) {
   .button {
-    min-width: 180px;
-    padding: var(--space-4) var(--space-6);
-    font-size: var(--font-size-lg);
-  }
-
-  .icon {
-    width: 20px;
-    height: 20px;
+    width: 100%;
+    min-width: 0;
+    padding: 12px 20px;
+    font-size: var(--font-size-base);
   }
 }

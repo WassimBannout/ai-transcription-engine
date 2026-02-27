@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 @import './styles/variables.css';
 
 * {
@@ -17,7 +18,14 @@ body {
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
   color: var(--color-text-primary);
-  background: linear-gradient(135deg, #0a192f 0%, #112240 50%, #1a2332 100%);
+  background:
+    radial-gradient(circle at 12% 10%, rgba(255, 122, 26, 0.25), transparent 45%),
+    radial-gradient(circle at 88% 22%, rgba(37, 199, 183, 0.2), transparent 42%),
+    linear-gradient(150deg, var(--color-bg-top) 0%, var(--color-bg-mid) 55%, var(--color-bg-bottom) 100%);
+  min-height: 100vh;
+}
+
+#root {
   min-height: 100vh;
 }
 
@@ -36,7 +44,7 @@ button {
 }
 
 *:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-highlight);
   outline-offset: 2px;
 }
 
@@ -46,15 +54,14 @@ button {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(37, 199, 183, 0.45);
   border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(37, 199, 183, 0.62);
 }

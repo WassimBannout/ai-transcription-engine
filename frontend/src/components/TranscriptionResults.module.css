@@ -1,9 +1,17 @@
 .container {
   margin-top: var(--space-8);
+  display: grid;
+  gap: var(--space-4);
 }
 
 .exportRow {
   display: flex;
   justify-content: flex-end;
-  margin-top: var(--space-4);
+  margin-top: var(--space-1);
+}
+
+@media (max-width: 640px) {
+  .exportRow {
+    justify-content: stretch;
+  }
 }
