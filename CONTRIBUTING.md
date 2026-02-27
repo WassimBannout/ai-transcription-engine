@@ -12,7 +12,7 @@ The project ships with a VS Code Dev Container that handles all dependencies aut
 
 **Setup:**
 ```bash
-git clone https://github.com/YOUR_USERNAME/ai-transcription-engine.git
+git clone https://github.com/WassimBannout/ai-transcription-engine.git
 cd ai-transcription-engine
 code .
 # VS Code will prompt: "Reopen in Container" — click it
