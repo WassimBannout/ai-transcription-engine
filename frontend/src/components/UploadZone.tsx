@@ -18,7 +18,11 @@ export function UploadZone({
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    onDragLeave();
+    // Only fire when the cursor actually leaves the drop zone container,
+    // not when it moves between child elements inside it.
+    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+      onDragLeave();
+    }
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {

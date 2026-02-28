@@ -22,8 +22,12 @@ class CleanRequest(BaseModel):
     system_prompt: str | None = None
 
 
+MAX_UPLOAD_BYTES = 200 * 1024 * 1024  # 200 MB
+
+
 class AppConfig(BaseModel):
     whisper_model: str
+    whisper_language: str
     llm_base_url: str
     llm_api_key: str
     llm_model: str
@@ -46,6 +50,7 @@ def _parse_cors_origins(value: str | None) -> list[str]:
 def load_config_from_env() -> AppConfig:
     config = AppConfig(
         whisper_model=os.getenv("WHISPER_MODEL", "").strip(),
+        whisper_language=os.getenv("WHISPER_LANGUAGE", "en").strip(),
         llm_base_url=os.getenv("LLM_BASE_URL", "").strip(),
         llm_api_key=os.getenv("LLM_API_KEY", "").strip(),
         llm_model=os.getenv("LLM_MODEL", "").strip(),
@@ -73,24 +78,25 @@ def load_config_from_env() -> AppConfig:
 
 
 def create_app() -> FastAPI:
+    # Load config once — used for both CORS setup and the lifespan service init.
+    config = load_config_from_env()
+
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         logger.info("Starting VoiceScript AI")
-        config = load_config_from_env()
-
         app.state.config = config
         app.state.service = TranscriptionService(
             whisper_model=config.whisper_model,
             llm_base_url=config.llm_base_url,
             llm_api_key=config.llm_api_key,
             llm_model=config.llm_model,
+            whisper_language=config.whisper_language,
         )
         logger.info("VoiceScript AI ready")
         yield
 
     app = FastAPI(title="VoiceScript AI", lifespan=lifespan)
 
-    config = load_config_from_env()
     app.add_middleware(
         CORSMiddleware,
         allow_origins=config.cors_origins,
@@ -108,12 +114,11 @@ def create_app() -> FastAPI:
     @app.get("/api/status")
     async def get_status():
         service_ready = bool(getattr(app.state, "service", None))
-        active_config = getattr(app.state, "config", None) or config
         return {
             "status": "ready" if service_ready else "initializing",
-            "whisper_model": active_config.whisper_model,
-            "llm_model": active_config.llm_model,
-            "llm_base_url": active_config.llm_base_url,
+            "whisper_model": config.whisper_model,
+            "llm_model": config.llm_model,
+            "llm_base_url": config.llm_base_url,
         }
 
     @app.get("/api/system-prompt")
@@ -132,6 +137,11 @@ def create_app() -> FastAPI:
             content = await audio.read()
             if not content:
                 raise HTTPException(status_code=400, detail="Uploaded audio file is empty")
+            if len(content) > MAX_UPLOAD_BYTES:
+                raise HTTPException(
+                    status_code=413,
+                    detail=f"File too large (max {MAX_UPLOAD_BYTES // 1024 // 1024} MB)",
+                )
             tmp.write(content)
             tmp_path = tmp.name
 

@@ -1,15 +1,28 @@
 #!/usr/bin/env python3
 """Transcription and LLM cleaning service primitives."""
 
+import logging
 from collections.abc import AsyncGenerator
 from pathlib import Path
 
 from faster_whisper import WhisperModel
 from openai import AsyncOpenAI, OpenAI
 
+logger = logging.getLogger(__name__)
+
 # Edit system_prompt.txt to change how the LLM cleans transcriptions
-PROMPT_FILE = Path(__file__).parent / "system_prompt.txt"
-SYSTEM_PROMPT = PROMPT_FILE.read_text().strip()
+_PROMPT_FILE = Path(__file__).parent / "system_prompt.txt"
+_FALLBACK_SYSTEM_PROMPT = (
+    "You are a transcript editor. Transform raw transcripts into clear, concise text. "
+    "Remove filler words, fix grammar, and preserve key points. "
+    "Return ONLY the cleaned text with NO preamble."
+)
+
+try:
+    SYSTEM_PROMPT = _PROMPT_FILE.read_text().strip() or _FALLBACK_SYSTEM_PROMPT
+except OSError:
+    logger.warning("system_prompt.txt not found — using built-in fallback prompt")
+    SYSTEM_PROMPT = _FALLBACK_SYSTEM_PROMPT
 
 
 class LLMServiceError(RuntimeError):
@@ -20,38 +33,47 @@ class TranscriptionService:
     """OpenAI-compatible transcription and cleaning service."""
 
     def __init__(
-        self, whisper_model: str, llm_base_url: str, llm_api_key: str, llm_model: str
+        self,
+        whisper_model: str,
+        llm_base_url: str,
+        llm_api_key: str,
+        llm_model: str,
+        whisper_language: str = "en",
     ):
-        print(f"🔄 Loading Whisper model '{whisper_model}'...")
+        logger.info("Loading Whisper model '%s'...", whisper_model)
         self.whisper = WhisperModel(
             whisper_model,
             device="auto",  # Auto-detect: Metal (Mac), CUDA (NVIDIA), or CPU
             compute_type="int8",
         )
-        print(f"✅ Whisper model '{whisper_model}' loaded!")
+        self.whisper_language = whisper_language
+        logger.info("Whisper model '%s' loaded", whisper_model)
 
-        print(f"🔄 Connecting to LLM at {llm_base_url}...")
+        logger.info("Connecting to LLM at %s...", llm_base_url)
         self.llm_base_url = llm_base_url
         self.llm_api_key = llm_api_key
         self.llm_model = llm_model
         self.llm_client = OpenAI(base_url=llm_base_url, api_key=llm_api_key)
+        self.async_llm_client = AsyncOpenAI(base_url=llm_base_url, api_key=llm_api_key)
 
         try:
             self.llm_client.models.list()
-            print("✅ Connected to LLM API!")
+            logger.info("Connected to LLM API")
         except Exception as e:
-            print(f"⚠️  Warning: Could not connect to LLM: {e}")
-            print(f"   Make sure your LLM server is running at {llm_base_url}")
+            logger.warning("Could not connect to LLM at %s: %s", llm_base_url, e)
 
     def transcribe(self, audio_file: str) -> str:
-        print("🔄 Transcribing...")
+        logger.info("Transcribing %s", audio_file)
 
         segments, _info = self.whisper.transcribe(
-            audio_file, beam_size=5, language="en", condition_on_previous_text=False
+            audio_file,
+            beam_size=5,
+            language=self.whisper_language,
+            condition_on_previous_text=False,
         )
 
         text = " ".join(segment.text for segment in segments).strip()
-        print(f"📝 Raw: {text}")
+        logger.info("Raw transcript: %s", text)
         return text
 
     def get_default_system_prompt(self) -> str:
@@ -63,7 +85,7 @@ class TranscriptionService:
 
         prompt_to_use = system_prompt if system_prompt else SYSTEM_PROMPT
 
-        print("🤖 Cleaning with LLM...")
+        logger.info("Cleaning with LLM...")
 
         try:
             response = self.llm_client.chat.completions.create(
@@ -78,11 +100,11 @@ class TranscriptionService:
 
             message_content = response.choices[0].message.content
             cleaned = message_content.strip() if message_content else ""
-            print(f"✨ Cleaned: {cleaned}")
+            logger.info("Cleaned transcript: %s", cleaned)
             return cleaned
 
         except Exception as e:
-            print(f"⚠️  LLM error: {e}")
+            logger.exception("LLM cleaning error")
             raise LLMServiceError(f"LLM cleaning failed: {e}") from e
 
     async def stream_clean(
@@ -94,13 +116,10 @@ class TranscriptionService:
 
         prompt_to_use = system_prompt if system_prompt else SYSTEM_PROMPT
 
-        print("🤖 Streaming clean with LLM...")
+        logger.info("Streaming LLM clean...")
 
         try:
-            async_client = AsyncOpenAI(
-                base_url=self.llm_base_url, api_key=self.llm_api_key
-            )
-            stream = await async_client.chat.completions.create(
+            stream = await self.async_llm_client.chat.completions.create(
                 model=self.llm_model,
                 messages=[
                     {"role": "system", "content": prompt_to_use},
@@ -117,18 +136,5 @@ class TranscriptionService:
                     yield delta
 
         except Exception as e:
-            print(f"⚠️  Streaming LLM error: {e}")
+            logger.exception("Streaming LLM error")
             raise LLMServiceError(f"Streaming LLM failed: {e}") from e
-
-    def transcribe_file(self, audio_file_path: str, use_llm: bool = True) -> dict:
-        raw_text = self.transcribe(audio_file_path)
-
-        result = {"raw_text": raw_text}
-
-        if use_llm and raw_text:
-            cleaned_text = self.clean_with_llm(raw_text)
-            result["cleaned_text"] = cleaned_text
-        else:
-            result["cleaned_text"] = raw_text
-
-        return result

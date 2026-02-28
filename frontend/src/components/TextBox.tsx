@@ -8,7 +8,6 @@ export function TextBox({
   onChange,
   placeholder,
   mode,
-  variant: _variant = 'default',
   isLoading = false,
   isDisabled = false,
   showCopyButton = false,

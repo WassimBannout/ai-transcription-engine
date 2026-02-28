@@ -31,7 +31,6 @@ export function TextInputZone({
       <Box header="Paste Text Transcript" icon={FileText}>
         <TextBox
           mode="input"
-          variant="default"
           value={inputText}
           onChange={setInputText}
           placeholder="Paste your transcript here..."

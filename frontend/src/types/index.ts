@@ -1,34 +1,5 @@
 export type RecordingState = 'idle' | 'recording' | 'processing';
 
-export interface AppState {
-  isRecording: boolean;
-  isProcessing: boolean;
-  rawText: string | null;
-  cleanedText: string | null;
-  isCleaningWithLLM: boolean;
-  error: string | null;
-  useLLM: boolean;
-  isCopied: boolean;
-  systemPrompt: string;
-  isLoadingPrompt: boolean;
-  isDragging: boolean;
-}
-
-export interface TranscriptionResponse {
-  text: string;
-}
-
-export interface CleanTextResponse {
-  cleaned_text: string;
-}
-
-export interface SystemPromptResponse {
-  default_prompt: string;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface HeaderProps {}
-
 export interface RecordButtonProps {
   isRecording: boolean;
   isProcessing: boolean;
@@ -84,7 +55,6 @@ export interface TextBoxProps {
   onChange?: (value: string) => void;
   placeholder?: string;
   mode: 'input' | 'display';
-  variant?: 'default' | 'enhanced';
   isLoading?: boolean;
   isDisabled?: boolean;
   showCopyButton?: boolean;
@@ -106,17 +76,3 @@ export interface BoxProps {
   className?: string;
 }
 
-export type AudioFileType =
-  | 'audio/mpeg'
-  | 'audio/wav'
-  | 'audio/webm'
-  | 'audio/ogg'
-  | 'audio/x-m4a';
-
-export const ACCEPTED_AUDIO_TYPES: AudioFileType[] = [
-  'audio/mpeg',
-  'audio/wav',
-  'audio/webm',
-  'audio/ogg',
-  'audio/x-m4a',
-];

@@ -40,6 +40,14 @@ function App() {
   const chunksRef = useRef<Blob[]>([]);
   const isKeyDownRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const streamAbortRef = useRef<AbortController | null>(null);
+
+  // Cancel any in-flight stream on unmount.
+  useEffect(() => {
+    return () => {
+      streamAbortRef.current?.abort();
+    };
+  }, []);
 
   useEffect(() => {
     const loadSystemPrompt = async () => {
@@ -69,6 +77,11 @@ function App() {
   /** Stream LLM cleaning token-by-token via SSE. Updates cleanedText incrementally. */
   const streamClean = useCallback(
     async (text: string) => {
+      // Cancel any in-flight stream before starting a new one.
+      streamAbortRef.current?.abort();
+      const controller = new AbortController();
+      streamAbortRef.current = controller;
+
       setIsCleaningWithLLM(true);
       setCleanedText('');
       setError(null);
@@ -81,6 +94,7 @@ function App() {
             text,
             ...(systemPrompt && { system_prompt: systemPrompt }),
           }),
+          signal: controller.signal,
         });
 
         if (!response.ok || !response.body) {
@@ -139,6 +153,9 @@ function App() {
           }
         }
       } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          return; // Intentional cancellation — suppress error UI
+        }
         const msg = err instanceof Error ? err.message : 'Unknown error';
         setError('Streaming failed: ' + msg);
       } finally {
@@ -229,45 +246,54 @@ function App() {
     }
   }, [isRecording]);
 
-  const processAudioFile = (file: File) => {
-    if (!file) return;
+  const processAudioFile = useCallback(
+    (file: File) => {
+      if (!file) return;
 
-    if (!file.type.startsWith('audio/')) {
-      setError('Please select an audio file');
-      return;
-    }
+      if (!file.type.startsWith('audio/')) {
+        setError('Please select an audio file');
+        return;
+      }
 
-    setError(null);
-    setRawText(null);
-    setCleanedText(null);
-    setIsProcessing(true);
-    setIsCleaningWithLLM(false);
+      setError(null);
+      setRawText(null);
+      setCleanedText(null);
+      setIsProcessing(true);
+      setIsCleaningWithLLM(false);
 
-    const blob = new Blob([file], { type: file.type });
-    void uploadAudio(blob, file.name || 'upload.webm');
-  };
+      const blob = new Blob([file], { type: file.type });
+      void uploadAudio(blob, file.name || 'upload.webm');
+    },
+    [uploadAudio],
+  );
 
-  const handleDragEnter = () => {
+  const handleDragEnter = useCallback(() => {
     setIsDragging(true);
-  };
+  }, []);
 
-  const handleDragLeave = () => {
+  const handleDragLeave = useCallback(() => {
     setIsDragging(false);
-  };
+  }, []);
 
-  const handleDrop = (file: File) => {
-    if (isProcessing || isRecording) return;
-    processAudioFile(file);
-  };
+  const handleDrop = useCallback(
+    (file: File) => {
+      if (isProcessing || isRecording) return;
+      processAudioFile(file);
+    },
+    [isProcessing, isRecording, processAudioFile],
+  );
 
-  const handleFileSelect = (file: File) => {
-    processAudioFile(file);
+  const handleFileSelect = useCallback(
+    (file: File) => {
+      processAudioFile(file);
 
-    // Reset file input so the same file can be selected again
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
+      // Reset file input so the same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    },
+    [processAudioFile],
+  );
 
   const handleTextSubmit = useCallback(
     async (text: string) => {
@@ -305,7 +331,7 @@ function App() {
     }
   }, []);
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = useCallback((text: string) => {
     navigator.clipboard
       .writeText(text)
       .then(() => {
@@ -313,7 +339,7 @@ function App() {
         setTimeout(() => setIsCopied(false), 2000);
       })
       .catch((err: Error) => setError('Copy failed: ' + err.message));
-  };
+  }, []);
 
   // Keyboard shortcut: Hold V to record
   useEffect(() => {
@@ -351,9 +377,7 @@ function App() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-    // startRecording and stopRecording are stable callbacks, safe to omit
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRecording, isProcessing]);
+  }, [isRecording, isProcessing, startRecording, stopRecording]);
 
   return (
     <div className={styles.app}>

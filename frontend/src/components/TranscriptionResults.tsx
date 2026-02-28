@@ -39,7 +39,6 @@ export function TranscriptionResults({
       >
         <TextBox
           mode="display"
-          variant="default"
           value={rawText || ''}
           isLoading={isProcessing && !rawText}
           maxHeight="300px"
@@ -51,7 +50,6 @@ export function TranscriptionResults({
         <Box header="Cleaned Transcription" icon={Sparkles}>
           <TextBox
             mode="display"
-            variant="default"
             value={cleanedText || ''}
             isLoading={isCleaningSpinner}
             showCopyButton={!!cleanedText && !isCleaningWithLLM}
@@ -66,7 +64,6 @@ export function TranscriptionResults({
       {!useLLM && displayText && (
         <TextBox
           mode="display"
-          variant="default"
           value={displayText}
           showCopyButton={true}
           isCopied={isCopied}

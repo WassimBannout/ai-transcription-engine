@@ -82,7 +82,6 @@ export function SettingsPanel({
             <div className={styles.promptContent}>
               <TextBox
                 mode="input"
-                variant="default"
                 value={systemPrompt}
                 onChange={onPromptChange}
                 placeholder="Enter system prompt for LLM..."
