@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import styles from './App.module.css';
 import { Header } from './components/Header';
-import { RecordButton } from './components/RecordButton';
-import { UploadZone } from './components/UploadZone';
-import { TextInputZone } from './components/TextInputZone';
+import { InputTabs } from './components/InputTabs';
+import type { TabId } from './components/InputTabs';
 import { SettingsPanel } from './components/SettingsPanel';
 import { TranscriptionResults } from './components/TranscriptionResults';
 import { ErrorMessage } from './components/ErrorMessage';
@@ -35,6 +34,7 @@ function App() {
   const [isCleaningWithLLM, setIsCleaningWithLLM] = useState(false);
   const [isOriginalExpanded, setIsOriginalExpanded] = useState(true);
   const [selectedPreset, setSelectedPreset] = useState(DEFAULT_PRESET_ID);
+  const [activeTab, setActiveTab] = useState<TabId>('record');
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -355,6 +355,7 @@ function App() {
         isKeyDownRef.current = true;
 
         if (!isRecording) {
+          setActiveTab('record');
           void startRecording();
         }
       }
@@ -384,56 +385,57 @@ function App() {
       <div className={styles.container}>
         <Header />
 
-        <RecordButton
-          isRecording={isRecording}
-          isProcessing={isProcessing}
-          onStartRecording={startRecording}
-          onStopRecording={stopRecording}
-        />
+        <div className={styles.layout}>
+          <div className={styles.inputPanel}>
+            <InputTabs
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              isRecording={isRecording}
+              isProcessing={isProcessing}
+              isDragging={isDragging}
+              fileInputRef={fileInputRef}
+              onStartRecording={startRecording}
+              onStopRecording={stopRecording}
+              onFileSelect={handleFileSelect}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onTextSubmit={handleTextSubmit}
+            />
 
-        <UploadZone
-          isProcessing={isProcessing}
-          isDragging={isDragging}
-          onFileSelect={handleFileSelect}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          fileInputRef={fileInputRef}
-        />
+            <SettingsPanel
+              useLLM={useLLM}
+              systemPrompt={systemPrompt}
+              isLoadingPrompt={isLoadingPrompt}
+              selectedPreset={selectedPreset}
+              onToggleLLM={setUseLLM}
+              onPromptChange={setSystemPrompt}
+              onPresetSelect={handlePresetSelect}
+            />
 
-        <TextInputZone
-          isProcessing={isProcessing}
-          onTextSubmit={handleTextSubmit}
-        />
+            {error && (
+              <ErrorMessage message={error} onDismiss={() => setError(null)} />
+            )}
+          </div>
 
-        <SettingsPanel
-          useLLM={useLLM}
-          systemPrompt={systemPrompt}
-          isLoadingPrompt={isLoadingPrompt}
-          selectedPreset={selectedPreset}
-          onToggleLLM={setUseLLM}
-          onPromptChange={setSystemPrompt}
-          onPresetSelect={handlePresetSelect}
-        />
+          <div className={styles.resultsPanel}>
+            <TranscriptionResults
+              rawText={rawText}
+              cleanedText={cleanedText}
+              useLLM={useLLM}
+              isCopied={isCopied}
+              isCleaningWithLLM={isCleaningWithLLM}
+              isProcessing={isProcessing}
+              isOriginalExpanded={isOriginalExpanded}
+              selectedPreset={selectedPreset}
+              onCopy={copyToClipboard}
+              onToggleOriginalExpanded={() =>
+                setIsOriginalExpanded(!isOriginalExpanded)
+              }
+            />
+          </div>
+        </div>
 
-        {error && (
-          <ErrorMessage message={error} onDismiss={() => setError(null)} />
-        )}
-
-        <TranscriptionResults
-          rawText={rawText}
-          cleanedText={cleanedText}
-          useLLM={useLLM}
-          isCopied={isCopied}
-          isCleaningWithLLM={isCleaningWithLLM}
-          isProcessing={isProcessing}
-          isOriginalExpanded={isOriginalExpanded}
-          selectedPreset={selectedPreset}
-          onCopy={copyToClipboard}
-          onToggleOriginalExpanded={() =>
-            setIsOriginalExpanded(!isOriginalExpanded)
-          }
-        />
         <Footer />
       </div>
     </div>

@@ -50,10 +50,6 @@ export function UploadZone({
 
   return (
     <div className={styles.container}>
-      <div className={styles.divider}>
-        <span>OR</span>
-      </div>
-
       <div
         className={zoneClass}
         onDragOver={handleDragOver}

@@ -1,0 +1,54 @@
+.container {
+  margin-bottom: var(--space-5);
+}
+
+/* ── Segmented tab bar ─────────────────────────────────────── */
+.tabBar {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  background: rgba(3, 10, 18, 0.72);
+  border: 1px solid rgba(134, 193, 217, 0.2);
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-5);
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
+  transition: all var(--transition-base);
+  white-space: nowrap;
+}
+
+.tab:hover:not(.tabActive) {
+  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tabActive {
+  background: linear-gradient(120deg, var(--color-accent), #ff9a40);
+  color: #fff;
+  font-weight: var(--font-weight-semibold);
+  box-shadow: 0 3px 12px rgba(255, 122, 26, 0.38);
+}
+
+.tabIcon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* ── Tab panel ─────────────────────────────────────────────── */
+.tabPanel {
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+}

@@ -1,7 +1,41 @@
 .container {
-  margin-top: var(--space-8);
   display: grid;
   gap: var(--space-4);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-height: 260px;
+  border: 1px dashed rgba(134, 193, 217, 0.2);
+  border-radius: var(--radius-xl);
+  background: rgba(4, 16, 26, 0.35);
+  text-align: center;
+  padding: var(--space-8);
+}
+
+.emptyIcon {
+  width: 40px;
+  height: 40px;
+  color: rgba(134, 193, 217, 0.35);
+}
+
+.emptyTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.emptySubtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  margin: 0;
+  max-width: 26ch;
+  line-height: var(--line-height-relaxed);
 }
 
 .exportRow {

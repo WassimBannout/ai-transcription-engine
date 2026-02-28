@@ -17,9 +17,16 @@ export function TranscriptionResults({
   onCopy,
   onToggleOriginalExpanded,
 }: TranscriptionResultsProps) {
-  // Show component if either processing or rawText exists
   if (!isProcessing && !rawText) {
-    return null;
+    return (
+      <div className={styles.emptyState}>
+        <FileText className={styles.emptyIcon} />
+        <p className={styles.emptyTitle}>No transcription yet</p>
+        <p className={styles.emptySubtitle}>
+          Record audio, upload a file, or paste text to get started.
+        </p>
+      </div>
+    );
   }
 
   const displayText = useLLM && cleanedText ? cleanedText : rawText;
