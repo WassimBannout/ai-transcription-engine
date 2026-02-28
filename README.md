@@ -20,10 +20,7 @@ A production-grade, full-stack AI transcription system that converts speech to p
 
 ## Demo
 
-<!-- Add a screenshot or screen recording here after first run -->
-<!-- Example: ![Demo](docs/demo.gif) -->
-
-> **Tip:** Record a short GIF of the app in action and drop it into `docs/` — it's the single biggest thing that makes a GitHub page stand out.
+![VoiceScript AI UI](docs/voicescript-ui.png)
 
 ## Architecture
 
